@@ -29,6 +29,7 @@
                 height: 100%;
                 margin: 0;
                 padding: 0;
+                background: black;
             }
 
             #renderCanvas {
@@ -87,6 +88,7 @@
                 scene.activeCamera.attachControl(canvas, false);
                 scene.activeCamera.lowerRadiusLimit = 0.7;
                 scene.activeCamera.upperRadiusLimit = 3;
+                scene.activeCamera.wheelDeltaPercentage = 0.01;
                 scene.activeCamera.alpha += Math.PI; // camera +180°
             });
             return scene;
