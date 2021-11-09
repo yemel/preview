@@ -19,6 +19,8 @@
         <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
         <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
         <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://cdn.ethers.io/lib/ethers-5.2.umd.min.js" type="application/javascript"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@alch/alchemy-web3@latest/dist/alchemyWeb3.min.js"></script>
 
         <style>
             html, body {
@@ -45,53 +47,66 @@
         var scene = null;
         var sceneToRender = null;
         var createDefaultEngine = function() { return new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true,  disableWebGL2Support: false}); };
-        var createScene = function () {
+        
+        var createScene = async function () {
+            var params = new URLSearchParams(window.location.search);
 
-        var scene = new BABYLON.Scene(engine);
-        var fileUrl = "https://peer.decentraland.org/content/contents/Qmag83cL3EGgRNFSMEu5MM9TDizH9Jno4E2rxy59ChE78e";
-       
-        /*
-        fetch(fileUrl).then(data => {
-            DATA = data
-            data.blob().then(blob => {
-                BLOB = blob;
+            var contractAddress = params.get("contract") || "0x328abea223c47f16e61f67a5f8f445777f6245d6";
+            var id = params.get("id") || "1";
 
-                BABYLON.SceneLoader.ImportMesh("", url, base64_model_content, scene, () => {
-                     scene.createDefaultCamera(true, true, true);
-                });
-            })
-        })
-        */
+            var NFTAPI = "https://nft-api.decentraland.org/v1/items?contractAddress=" + contractAddress + "&itemId=" + id;
+            var nft = await (await fetch(NFTAPI)).json();
+            var thumbnail = nft.data[0].thumbnail;
+            var urn = thumbnail.substr(0, thumbnail.length-10).substr(59);
 
-    //   BABYLON.SceneLoader.Append(fileUrl, "", scene, function (newMeshes) {
-       BABYLON.SceneLoader.Append("http://preview.decentraland.vote/examples/", "lola.glb", scene, function (newMeshes) {
-    //   BABYLON.SceneLoader.Append("http://preview.decentraland.vote/examples/", "Qmag83cL3EGgRNFSMEu5MM9TDizH9Jno4E2rxy59ChE78e", scene, function (newMeshes) {
-    //   BABYLON.SceneLoader.Append("http://preview.decentraland.vote/examples/", "Aztec_spirit_lord.glb", scene, function (newMeshes) {
-    // /*
-        scene.createDefaultCameraOrLight(true);
-        scene.activeCamera.attachControl(canvas, false);
-        scene.activeCamera.alpha += Math.PI; // camera +180°
-    });
-    // */
+            var CONTENTAPI = "https://peer.decentraland.org/lambdas/collections/wearables?wearableId=" + urn;
+            var content = await (await fetch(CONTENTAPI)).json();
+            var fileUrl = content.wearables[0].data.representations[0].contents[0].url;
+            
+            var blob = await (await fetch(fileUrl)).blob();
+            var file = new File([blob], "image.glb", {type: blob.type});
+            
+            var scene = new BABYLON.Scene(engine);
 
-    return scene;
-}
-                window.initFunction = async function() {
-                    
-                    
-                    var asyncEngineCreation = async function() {
-                        try {
-                        return createDefaultEngine();
-                        } catch(e) {
-                        console.log("the available createEngine function failed. Creating the default engine instead");
-                        return createDefaultEngine();
-                        }
-                    }
+            
+            var rarity = content.wearables[0].rarity;
+            var colors = {
+                "unique": "#ffb626",
+                "mythic": "#ff63e1",
+                "legendary": "#842dda",
+                "epic": "#3d85e6",
+                "rare": "#36cf75",
+                "uncommon": "#ed6d4f",
+                "common": "#abc1c1",
+            }
 
-                    window.engine = await asyncEngineCreation();
-        if (!engine) throw 'engine should not be null.';
-        window.scene = createScene();};
-        initFunction().then(() => {sceneToRender = scene        
+            scene.clearColor = new BABYLON.Color3.FromHexString(colors[rarity]);
+
+            BABYLON.SceneLoader.Append("", file, scene, function (newMeshes) {
+                scene.createDefaultCameraOrLight(true);
+                scene.activeCamera.attachControl(canvas, false);
+                scene.activeCamera.alpha += Math.PI; // camera +180°
+            });
+            return scene;
+        }
+
+        window.initFunction = async function() {
+            var asyncEngineCreation = async function() {
+                try {
+                return createDefaultEngine();
+                } catch(e) {
+                console.log("the available createEngine function failed. Creating the default engine instead");
+                return createDefaultEngine();
+                }
+            }
+
+            window.engine = await asyncEngineCreation();
+            if (!engine) throw 'engine should not be null.';
+            window.scene = await createScene();
+        }
+        
+        initFunction().then(() => {
+            sceneToRender = scene        
             engine.runRenderLoop(function () {
                 if (sceneToRender && sceneToRender.activeCamera) {
                     sceneToRender.render();
@@ -99,7 +114,6 @@
             });
         });
 
-        // Resize
         window.addEventListener("resize", function () {
             engine.resize();
         });
