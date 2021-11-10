@@ -35,6 +35,56 @@
               opacity: 0 !important;  
             }
 
+            #info {
+                display: inline-block;
+                position: fixed;
+                bottom: 1rem;
+                left: 0rem;
+                color: white;
+                padding: 13px 32px;
+                font-size: 13px;
+                line-height: 18px;
+                text-transform: uppercase;
+                text-shadow: #ccd 0px 0 7px;
+            }
+
+            #info #name {
+                font-size: 28px;
+                line-height: 30px;
+                margin-bottom: 0.5rem;
+                display: block;
+            }
+
+            #info #description {
+                font-size: 20px;
+                line-height: 20px;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+
+            #info #rarity {
+                font-size: 20px;
+                line-height: 20px;
+                display: block;
+                margin-bottom: 0.2rem;
+            }
+
+            #info #creator {
+                font-size: 20px;
+                display: flex;
+            }
+
+            #info #avatar {
+                width: 2rem;
+                display: none;
+                border-radius: 10rem;
+            }
+
+            #info #username {
+                line-height: 2rem;
+                margin-left: 1rem;
+            }
+
             #randomize {
                 display: none;
                 z-index: 0;
@@ -72,9 +122,28 @@
         </style>
     </head>
 <body>
+    <div id="info">
+        <span id="name"></span>
+        <span id="description"></span>
+        <span id="rarity"></span>
+        <span id="creator">
+            <img id="avatar" alt="creator"/>
+            <span id="username"></span>
+        </span>
+    </div>
     <div id="randomize">Next</div>
     <canvas id="renderCanvas"></canvas>
     <script>
+        var colors = {
+            "unique": "#ffb626",
+            "mythic": "#ff63e1",
+            "legendary": "#842dda",
+            "epic": "#3d85e6",
+            "rare": "#36cf75",
+            "uncommon": "#ed6d4f",
+            "common": "#abc1c1",
+        }
+
         var randomize = document.getElementById("randomize");
         randomize.onclick = async function() {
             randomize.innerText = '...';
@@ -106,11 +175,28 @@
             var thumbnail = nft.data[0].thumbnail;
             var urn = thumbnail.substr(0, thumbnail.length-10).substr(59);
 
+            var PROFILEAPI = "https://peer.decentraland.org/lambdas/profile/" + nft.data[0].creator;
+            var profile = await (await fetch(PROFILEAPI)).json();
+            
             var CONTENTAPI = "https://peer.decentraland.org/lambdas/collections/wearables?wearableId=" + urn;
             var content = await (await fetch(CONTENTAPI)).json();
             var fileUrl = content.wearables[0].data.representations[0].contents[0].url;
-
-            console.log(NFTAPI);
+            
+            if(!iframe) {
+                document.getElementById("name").innerText = nft.data[0].name;
+                if (content.wearables[0].description) {
+                    document.getElementById("description").innerText = content.wearables[0].description;
+                } else {
+                    document.getElementById("description").display = "none";
+                }
+                document.getElementById("rarity").innerText = nft.data[0].rarity + " " + content.wearables[0].data.category;
+                document.body.style.backgroundColor = colors[nft.data[0].rarity];
+                if(profile.avatars[0]) {
+                    document.getElementById("avatar").src = profile.avatars[0].avatar.snapshots.face128;
+                    document.getElementById("username").innerText = profile.avatars[0].name;
+                    document.getElementById("avatar").style.display = 'inline-block';
+                }
+            }
             console.log(nft.data);
             console.log(content.wearables);
             
@@ -118,15 +204,6 @@
             var file = new File([blob], "image.glb", {type: blob.type});
             
             var rarity = content.wearables[0].rarity;
-            var colors = {
-                "unique": "#ffb626",
-                "mythic": "#ff63e1",
-                "legendary": "#842dda",
-                "epic": "#3d85e6",
-                "rare": "#36cf75",
-                "uncommon": "#ed6d4f",
-                "common": "#abc1c1",
-            }
             
             var scene = new BABYLON.Scene(engine);
             scene.clearColor = iframe ?
