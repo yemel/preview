@@ -1,7 +1,7 @@
 iframe = document.createElement('iframe');
 address = window.location.pathname.split('/')[2];
 item = window.location.pathname.split('/')[4];
-iframe.src = "https://preview.decentraland.vote?contract=" + address + "&item=" + item;
+iframe.src = "https://preview.decentraland.vote?iframe=1&contract=" + address + "&item=" + item;
 iframe.style.height = "100%";
 iframe.style.width = "50%";
 iframe.style.border = "0";
