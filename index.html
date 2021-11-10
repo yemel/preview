@@ -3,7 +3,8 @@
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 
-        <title>Wearable Preview</title>
+        <title>Browse Wearables | Decentraland</title>
+        <link rel="icon" type="image/png" href="https://market.decentraland.org/favicon.ico">
 
         <!-- Babylon.js -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
@@ -118,6 +119,53 @@
                 touch-action: none;
                 outline: none;
                 border: 0;
+            }
+
+            @media (orientation: portrait) {
+                #info {
+                    top: 4rem;
+                    bottom: initial;
+                    width: 100%;
+                    text-align: center;
+                    padding: 0;
+                }
+
+                #info #name {
+                    font-size: 5rem;
+                    line-height: 6rem;
+                }
+
+                #info #description {
+                    font-size: 3rem;
+                    line-height: 4rem;
+                }
+
+                #info #rarity {
+                    font-size: 3rem;
+                    line-height: 4rem;
+                }
+
+                #info #creator {
+                    font-size: 3rem;
+                    line-height: 4rem;
+                }
+
+                #info #avatar {
+                    width: 5rem;
+                }
+
+                #info #creator {
+                    display: inline-flex;
+                    align-items: center;
+                }
+
+                #randomize {
+                    font-size: 5rem;
+                    line-height: 6rem;
+                    bottom: 4rem;
+                    right: 4rem;
+                    padding: 1rem 2rem;
+                }
             }
         </style>
     </head>
